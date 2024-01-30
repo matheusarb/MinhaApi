@@ -1,8 +1,21 @@
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-app.MapGet("/", () => "Hello World! I'm here222");
-app.MapGet("/usuarios", () => "Estes são os diletos usuários");
+//GET
+app.MapGet("/", () => {
+    return Results.Ok("HelloWorld");
+});
+app.MapGet("/{nome}", (string nome) => {
+    return $"Hello {nome}";
+});
+app.MapGet("/{nome}/{pedido}", (string nome, string pedido) => {
+    return Results.Ok($"Olá {nome}, seu {pedido} está pronto");
+});
+
+//POST
+app.MapPost("/", () => {
+
+});
 
 app.UseHttpsRedirection();
 
