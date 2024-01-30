@@ -1,4 +1,3 @@
-using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Mvc;
 using MinhaApi.Data;
 using MinhaApi.Models;
@@ -42,7 +41,7 @@ public class HomeController : ControllerBase
     }
 
     [HttpPut]
-    [Route("{id:int}")]
+    [Route("/{id:int}")]
     public TodoModel Put(
         [FromBody] TodoModel model,
         [FromServices] AppDbContext context,
@@ -64,7 +63,7 @@ public class HomeController : ControllerBase
 
     [HttpDelete]
     [Route("/{id:int}")]
-    public string Delete(
+    public IActionResult Delete(
         [FromServices] AppDbContext context,
         [FromRoute] int id
     )
@@ -74,6 +73,6 @@ public class HomeController : ControllerBase
         context.Todos.Remove(todoItem);
         context.SaveChanges();
 
-        return "item deletado";
+        return Ok(new { message = "item deletado" });
     }
 }
