@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using MinhaApi.Data;
 using MinhaApi.Models;
 
@@ -7,8 +8,6 @@ namespace MinhaApi.Controllers;
 [ApiController]
 public class HomeController : ControllerBase
 {
-
-
     [HttpGet]
     [Route("greeting/{name}")]
     public string WelcomeMessage(string name)
@@ -16,40 +15,44 @@ public class HomeController : ControllerBase
 
     [HttpGet]
     [Route("/alltodos")]
-    public List<TodoModel> GetTodos([FromServices] AppDbContext context)
-        => context.Todos.ToList();
+    public IActionResult GetTodos([FromServices] AppDbContext context)
+    {
+        var todo = context.Todos.AsNoTracking().ToList();
+        if (todo == null)
+            return NotFound();
+        return Ok(todo);
+    }
 
     [HttpGet]
     [Route("/{id}")]
-    public TodoModel GetById(
+    public IActionResult GetById(
         [FromServices] AppDbContext context,
         [FromRoute] int id
     )
-    {
-        return context.Todos.FirstOrDefault(x => x.Id == id);
-    }
+        => Ok(context.Todos.AsNoTracking().FirstOrDefault(x => x.Id == id));
 
     [HttpPost]
     [Route("/")]
-    public TodoModel Post(
+    public IActionResult Post(
         [FromServices] AppDbContext context,
-        [FromBody] TodoModel model)
+        [FromBody] TodoModel todoItem)
     {
-        context.Todos.Add(model);
+        context.Todos.Add(todoItem);
         context.SaveChanges();
-        return model;
+        return Created($"/{todoItem.Id}", todoItem);
     }
 
     [HttpPut]
     [Route("/{id:int}")]
-    public TodoModel Put(
+    public IActionResult Put(
         [FromBody] TodoModel model,
         [FromServices] AppDbContext context,
         [FromRoute] int id
     )
     {
         var todoItem = context.Todos.FirstOrDefault(x => x.Id == id);
-
+        if (todoItem == null)
+            return NotFound();
 
         todoItem.Title = model.Title ?? todoItem.Title;
         todoItem.Username = model.Username ?? todoItem.Title;
@@ -58,7 +61,7 @@ public class HomeController : ControllerBase
         context.Todos.Update(todoItem);
         context.SaveChanges();
 
-        return todoItem;
+        return Ok(todoItem);
     }
 
     [HttpDelete]
@@ -69,7 +72,9 @@ public class HomeController : ControllerBase
     )
     {
         var todoItem = context.Todos.FirstOrDefault(x => x.Id == id);
-        
+        if (todoItem == null)
+            return NotFound();
+
         context.Todos.Remove(todoItem);
         context.SaveChanges();
 
